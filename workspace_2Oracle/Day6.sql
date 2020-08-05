@@ -1,0 +1,367 @@
+--test계정 생성
+CREATE USER TEST IDENTIFIED BY TEST;
+-- 권한 부여
+GRANT CONNECT, RESOURCE TO TEST;
+
+--DDL
+/*
+ 	CREATE : 데이터 베이스의 객체를 생성하는 DDL
+ 	[사용형식]
+ 	CREATE 객채형태  객체명 (관련 내용)
+ 	
+ 	-- 테이블 생성 시
+ 	CREATE TABLE  테이블명(
+ 		컬럼명   자로형(길이)  제약조건
+ 	); 
+ 	
+ 	제약조건: 테이블에 데이터를 저장하고자 할때 지켜야 하는 규칙  
+ 		NOT NULL - NULL값 허용하지 않겠다.( 필수 입력 사항 ) 
+ 		UNIQUE - 중복 값을 허용하지 않는다. 
+ 		CHECK - 지정한 입력 사항 외에는 받지 못하게 막는 조건
+ 		PRIMARY KEY - ( NOT NULL + UNIQUE )
+ 		    테이블 내에서 해당 행을 인식할 수 있는 고유의 값
+ 		    테이블 내에서 단 1개만 존재 가능
+ 		FOREIGN KEY - 다른 테이블에서 지정된 값을 연결지어 
+ 		    참조로 가져오는 데이터에 지정하는 제약조건   
+ */
+
+-- 테이블 생성
+-- 데이터를 저장하기 위한 객체
+-- 2차원의 표 형태로 데이터를 담을수 있다. 행과 컬럼으로 구성
+CREATE TABLE MEMBER(
+	MEMBER_NO NUMBER, 			--회원번호
+	MEMBER_ID VARCHAR2(20),		--회원아이디
+	MEMBER_PWD VARCHAR2(20),	--회원비밀번호
+	MEMBER_NAME VARCHAR2(15)	--회원이름
+);
+SELECT * FROM MEMBER;
+
+-- 테이블의 각 컬럼에 주석 달기
+-- COMMENT ON COLUMN 테이블명.컬럼명 IS '주석내용';
+COMMENT ON COLUMN MEMBER.MEMBER_ID IS '회원 아디죠';
+COMMENT ON COLUMN MEMBER.MEMBER_NO IS '회원 번호';
+COMMENT ON COLUMN MEMBER.MEMBER_PWD IS '회원 비밀번호';
+COMMENT ON COLUMN MEMBER.MEMBER_NAME IS '회원 이름';
+
+
+--테이블 정보 확인
+DESC MEMBER;
+
+
+SELECT *
+FROM USER_TAB_COLUMNS 
+WHERE TABLE_NAME = 'MEMBER';
+--테이블 주석 조회
+SELECT *
+FROM USER_TAB_COMMENTS;
+--컬럼 주석 조회
+SELECT *
+FROM USER_COL_COMMENTS;
+
+SELECT * FROM USER_TABLES;
+
+-- 제약조건(CONSTRAINTS) --
+-- 테이블을 생성할 때 각 컬럼에 값을 기록하는 것에 대한 제약사항을 설정하는 조건들
+-- 데이터 무결성 보장 : 고유한 값이라는 혹은 값이 아무런 문제가 되지 않는다는 의미
+
+-- 현재 사용자 계정에 관련된 제약 조건 확인
+SELECT * FROM USER_CONS_COLUMNS;
+
+--NOT NULL
+--'널 값을 허용하지 않는다'
+-- 컬럼에 반드시 값을 기록해야 하는 경우
+-- 데이터 삽입/수정/삭제 시에 NULL 값을 허용하지 않드록
+-- 컬럼 작성 시 함께 제약조건 작성(컬럼레벨 제약조건 등록)
+
+DROP TABLE USER_NOCONS;
+CREATE TABLE USER_NOCONS(
+	USER_NO NUMBER,
+	USER_ID VARCHAR2(20),
+	USER_PWD VARCHAR2(30),
+	USER_NAME VARCHAR2(15),
+	GENDER VARCHAR2(3),
+	PHONE VARCHAR2(14),
+	EMAIL VARCHAR2(30)
+);
+SELECT * FROM USER_NOCONS;
+-- 테이블에 값 추가
+-- DML : INSERT
+INSERT INTO USER_NOCONS 
+VALUES(1, 'user01','pass01','이창진','남','010-1234-5678','lee315@kh.or.kr');
+
+INSERT INTO USER_NOCONS 
+VALUES(2, NULL, NULL, NULL, '남',NULL, NULL);
+
+SELECT * FROM USER_NOCONS;
+
+
+CREATE TABLE USER_NOT_NULL(
+	USER_NO NUMBER NOT NULL,	--컬럼레벨제약조건
+	USER_ID VARCHAR2(20) NOT NULL,
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(15) NOT NULL,
+	GENDER VARCHAR2(3),
+	PHONE VARCHAR2(14),
+	EMAIL VARCHAR2(30)
+);
+SELECT * FROM USER_NOT_NULL;
+
+INSERT INTO USER_NOT_NULL
+VALUES(1, 'user01','pass01','이창진','남','010-1234-5678','lee315@kh.or.kr');
+
+INSERT INTO USER_NOT_NULL
+VALUES(2,NULL,NULL,NULL,'여',NULL,NULL);
+
+-- UNIQUE 제약조건 --
+-- 중복을 허용하지 않는 제약조건
+-- 커럼에 값을 입력/수정할 때 중복을 확인하여 
+-- 중복 값이 있을경우 값 추가/수정을 못하게 막는 제약조건
+INSERT INTO USER_NOCONS 
+VALUES(1,'user01','1234','홍길동','남','010-4333-2111','hong@example.com');
+
+SELECT * FROM USER_NOCONS;
+
+CREATE TABLE USER_UNIQUE(
+	USER_NO NUMBER,
+	USER_ID VARCHAR2(20) UNIQUE,	--컬럼레벨 제약 조건
+	USER_PWD VARCHAR2(30),
+	USER_NAME VARCHAR2(15),
+	GENDER CHAR(3),
+	PHONE VARCHAR2(14),
+	EMAIL VARCHAR2(30)
+);
+SELECT * FROM USER_UNIQUE;
+
+
+INSERT INTO USER_UNIQUE
+VALUES(1, 'user01','pass01','이창진','남','010-1234-5678','lee315@kh.or.kr');
+INSERT INTO USER_UNIQUE 
+VALUES(1,'user01','1234','홍길동','여','010-4321-4321','hong@example.com');
+
+SELECT * FROM USER_UNIQUE;
+
+SELECT *
+FROM USER_CONSTRAINTS C1, USER_CONS_COLUMNS C2
+WHERE C1.CONSTRAINT_NAME = C2.CONSTRAINT_NAME;
+
+-- U : USIQUE
+-- P : PRIMARY KEY
+-- C : CHECK(NOT NULL )
+-- R : FOREIGN KEY (REFERENCE)
+
+
+
+CREATE TABLE USER_UNIQUE2(
+	USER_NO NUMBER,
+	--USER_ID VARCHAR2(20) UNIQUE,	--컬럼레벨 제약 조건
+	USER_ID VARCHAR2(20),
+	USER_PWD VARCHAR2(30),
+	USER_NAME VARCHAR2(15),
+	GENDER CHAR(3),
+	PHONE VARCHAR2(14),
+	EMAIL VARCHAR2(30),
+	UNIQUE(USER_ID)				-- 컬럼이 모두 작성된 후에 별도로 작성하는 제약조건을 
+								-- 테이블 레벨 제약조건 이라고 한다.
+);
+
+INSERT INTO USER_UNIQUE2
+VALUES(1, 'user01','pass01','이창진','남','010-1234-5678','lee315@kh.or.kr');
+INSERT INTO USER_UNIQUE2 
+VALUES(1,'user01','1234','홍길동','여','010-4321-4321','hong@example.com');
+
+
+-- UNIQUE 제약조건을 여러 개 컬럼에 적용
+-- 반드시 테이블 레벨에서 제약조건을 선언
+CREATE TABLE USER_UNIQUE3(
+	USER_NO NUMBER,
+	USER_ID VARCHAR2(20), 
+	USER_PWD VARCHAR2(30), 
+	USER_NAME VARCHAR2(15) ,
+	UNIQUE(USER_NO, USER_ID)	-- 두 개 이상의 컬럼값을 중복되지 않게 설정
+);
+SELECT * FROM USER_UNIQUE3; 
+
+INSERT INTO USER_UNIQUE3
+VALUES(1,'USER01','PASS01','이창진');
+INSERT INTO USER_UNIQUE3
+VALUES(1, 'USER02','PASS02','박창진');
+INSERT INTO USER_UNIQUE3 
+VALUES(2, 'USER01', 'PASS03','김창진');
+INSERT INTO USER_UNIQUE3 
+VALUES(2, 'USER02', 'PASS04','최창진');
+
+INSERT INTO USER_UNIQUE3 
+VALUES(2, 'USER02', 'PASS05','강창진');
+
+-- 제약조건 이름 설정
+CREATE TABLE CONS_NAME(
+	TEST_DATA1 NUMBER(10) CONSTRAINT NN_DATA1 NOT NULL,
+	TEST_DATA2 VARCHAR2(20) CONSTRAINT UN_DATA2 UNIQUE,
+	TEST_DATA3 VARCHAR2(30),
+	CONSTRAINT UK_DATA3 UNIQUE(TEST_DATA3)
+);
+
+--
+SELECT * FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME = 'CONS_NAME';
+
+
+-- CHECK 제약조건
+-- 컬럼에 값을 기록할 때 지정한 값 이외에는
+-- 값이 기록되지 않도록 범위를 제한하는 조건
+-- CHECK (컬럼명  비교연산자  값)
+--  Ex) CHECK( GENDER IN('M','F') )
+
+CREATE TABLE USER_CHECK(
+	USER_NO NUMBER,
+	USER_ID VARCHAR2(20),
+	USER_PWD VARCHAR2(30),
+	USER_NAME VARCHAR2(15),
+	GENDER CHAR(3) CHECK( GENDER IN('남','여') )
+);
+
+INSERT INTO USER_CHECK
+VALUES(1, 'USER01','PASS01','이창진','남');
+
+--ORA-12899: value too large for column "TEST"."USER_CHECK"."GENDER" (
+INSERT INTO USER_CHECK 
+VALUES(2, 'USER02','PASS02','장하영','남자');
+--check constraint (TEST.SYS_C007063) violated
+INSERT INTO USER_CHECK 
+VALUES(2, 'USER02','PASS02','장하영','M');
+
+--CHECK제약조건에 부등호사용
+CREATE TABLE TEST_CHECK2(
+	TEST_DATA NUMBER(10),
+	CONSTRAINT CK_TEST_DATA CHECK(TEST_DATA > 0)
+);
+
+INSERT INTO TEST_CHECK2
+VALUES(10);
+--ORA-02290: check constraint (TEST.CK_TEST_DATA) violated
+INSERT INTO TEST_CHECK2 
+VALUES(-10);
+
+
+CREATE TABLE TEST_CHECK3(
+	C_NAME VARCHAR2(15),
+	C_PRICE NUMBER,
+	C_DATE DATE,
+	C_QUAL CHAR(1),
+	CONSTRAINT CK_TESTCHK3_PRICE CHECK(C_PRICE BETWEEN 1 AND 9999),
+	CONSTRAINT CK_TESTCHK3_DATE CHECK(C_DATE > TO_DATE('2010/01/01','YYYY/MM/DD') ),
+	CONSTRAINT CK_TESTCHK3_QUAL CHECK(C_QUAL >= 'A' AND C_QUAL <='D')
+);
+
+SELECT * FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME = 'TEST_CHECK3';
+
+--제약조건 여러개 설정하기
+CREATE TABLE TEST_DUAL_CONS(
+	TEST_NO NUMBER(10) NOT NULL UNIQUE,
+	TEST_NO2 NUMBER NOT NULL
+);
+SELECT * FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME = 'TEST_DUAL_CONS';
+
+--PRIMARY KEY 제약조건--
+-- '기본키 제약조건'
+-- 테이블 내의 데이터 중에서 행을 식별하기위한 고유값을 가지는 컬럼에 NOT NULL과 UNIQUE 제약조건을 함께 걸어주는
+-- 즉 테이블 전체에 대한 각 데이터의 식별자 역할을 수행시키는 제약조건
+-- 기본키로 선언된 컬럼은 값이 반드시 들어가고, 중복이 일어나면 안된다.
+-- 기본키 제약조건은 각 테이블 마다 반드시 한개 존재해야한다.
+-- 기본키 제약조건은 한 컬럼에 적용 할수도 있고 , 여러컬럼을 묶어 적용할수도 있다.
+
+CREATE TABLE USER_PK_TABLE(
+	USER_NO NUMBER(10) CONSTRAINT PK_USER_NO PRIMARY KEY,	-- 컬럼 레벨 제약조건
+	USER_ID VARCHAR2(20) UNIQUE,
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(15) NOT NULL,
+	GENDER VARCHAR2(3) CHECK(GENDER IN('M','F'))
+);
+
+SELECT * FROM USER_PK_TABLE;
+INSERT INTO USER_PK_TABLE
+VALUES(1, 'USRE01','PASS01','LEE','M');
+
+INSERT INTO USER_PK_TABLE
+VALUES(2, 'USRE02','PASS02','KIM','F');
+
+--unique constraint (TEST.PK_USER_NO) violated
+INSERT INTO USER_PK_TABLE
+VALUES(1, 'USRE03','PASS03','CHOI','F');
+--ORA-01400: cannot insert NULL into ("TEST"."USER_PK_TABLE"."USER_NO")
+INSERT INTO USER_PK_TABLE
+VALUES(NULL, 'USRE03','PASS03','CHOI','F');
+
+--기본키 제약 조건을 설정하면 NOT NULL 과 UNIQUE가 함께 설정 된다.
+
+SELECT * FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME = 'USER_PK_TABLE';
+
+
+-- 기본키 제약 조건을 여러 컬럼에 적용하기
+CREATE TABLE USER_PK_TABLE2(
+	USER_NO NUMBER(10),
+	USER_ID VARCHAR2(20) UNIQUE,
+	USER_PWD VARCHAR2(30) NOT NULL,
+	USER_NAME VARCHAR2(15) NOT NULL,
+	GENDER VARCHAR2(3) CHECK(GENDER IN('M','F')),
+	CONSTRAINT PK_USER_NO2 PRIMARY KEY(USER_NO, USER_ID)
+);
+
+-- 1, 'USER01'  -- 성공
+-- 2, 'USER02'  -- 성공
+-- 1, 'USER03'  -- 성공
+-- 2, 'USER01'  -- 실패
+
+--1, 'USER01'
+--2, 'USER01'
+INSERT INTO USER_PK_TABLE2 
+VALUES(1,'USER01','PASS01','LEE','M');
+INSERT INTO USER_PK_TABLE2 
+VALUES(1,'USER02','PASS01','LEE','M');
+
+INSERT INTO USER_PK_TABLE2 
+VALUES(2,'USER01','PASS01','LEE','M');
+
+
+--DROP : 객체를 삭제하는 명령어
+DROP TABLE MEMBER;
+
+SELECT * FROM MEMBER;
+
+COMMIT;
+
+
+-- MEMBER 테이블을 생성하여
+-- 사용자 정보를 받을 수 있는 테이블 객체를 만들되,
+-- 회원 번호는 NUMBER형태로 기본키 설정하고,
+-- 회원 아이디는 중복 불가에 필수 입력 사항으로,
+-- 회원 비밀번호는 필수 입력 사항,
+-- 회원 이름, 성별('M', 'F'),
+-- 회원 연락처, 회원 생년월일 정보를
+-- 받을 수 있는 컬럼을 가진 테이블을 생성하시오.
+-- 단, 각 컬럼의 길이는 직접 판단하고,
+-- 위에 생성된 테이블 기준으로
+-- 회원 정보를 최소 5개 이상 삽입하여 확인하시오.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
